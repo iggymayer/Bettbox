@@ -6,15 +6,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.PowerManager
-import android.util.Log
 import androidx.core.content.getSystemService
 import com.appshub.bettbox.core.Core
 
 class SuspendModule(private val context: Context) {
-    companion object {
-        private const val TAG = "SuspendModule"
-    }
-
     private var isInstalled = false
     private var isSuspended = false
 
@@ -30,16 +25,12 @@ class SuspendModule(private val context: Context) {
     private fun updateSuspendState() {
         val shouldSuspendNow = shouldSuspend
 
-        Log.d(TAG, "updateSuspendState - shouldSuspend: $shouldSuspendNow, isSuspended: $isSuspended")
-
         when {
             shouldSuspendNow && !isSuspended -> {
-                Log.i(TAG, "Entering Doze - Suspending core")
                 Core.suspended(true)
                 isSuspended = true
             }
             !shouldSuspendNow && isSuspended -> {
-                Log.i(TAG, "Exiting Doze - Resuming core")
                 Core.suspended(false)
                 isSuspended = false
             }
@@ -48,9 +39,13 @@ class SuspendModule(private val context: Context) {
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            intent?.action?.let {
-                Log.d(TAG, "Received $it")
-                updateSuspendState()
+            intent?.action?.let { action ->
+                if (action == Intent.ACTION_SCREEN_ON && isSuspended) {
+                    Core.suspended(false)
+                    isSuspended = false
+                } else {
+                    updateSuspendState()
+                }
             }
         }
     }
@@ -69,7 +64,6 @@ class SuspendModule(private val context: Context) {
         }
         context.registerReceiver(receiver, filter)
         updateSuspendState()
-        Log.i(TAG, "SuspendModule installed - SDK: ${Build.VERSION.SDK_INT}")
     }
 
     fun uninstall() {
@@ -79,11 +73,9 @@ class SuspendModule(private val context: Context) {
         runCatching {
             context.unregisterReceiver(receiver)
             if (isSuspended) {
-                Log.i(TAG, "Uninstalling - Resume from suspend")
                 Core.suspended(false)
                 isSuspended = false
             }
-        }.onFailure { Log.w(TAG, "Failed to unregister receiver: ${it.message}") }
-        Log.i(TAG, "SuspendModule uninstalled")
+        }
     }
 }
