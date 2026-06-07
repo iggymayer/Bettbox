@@ -1244,6 +1244,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.2"
+  silky_scroll:
+    dependency: "direct main"
+    description:
+      path: "plugins/silky_scroll"
+      relative: true
+    source: path
+    version: "2.6.4"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -1672,5 +1679,5 @@ packages:
     source: hosted
     version: "2.2.4"
 sdks:
-  dart: ">=3.10.0-0 <4.0.0"
-  flutter: ">=3.35.6"
+  dart: ">=3.10.7 <4.0.0"
+  flutter: ">=3.44.0"
